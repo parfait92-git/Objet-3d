@@ -83,7 +83,30 @@
             const activeParticipants = participants.filter(p => !p.drawn);
             
             if (activeParticipants.length === 0) {
-                 // Gérer la vue quand il n'y a plus personne à tirer
+                // Créer une vue par défaut si aucun participant n'est disponible
+                const geometry = new THREE.CylinderGeometry(5, 5, 1, 64);
+                const material = new THREE.MeshStandardMaterial({ color: '#4a5568', roughness: 0.8, metalness: 0.1 });
+                const defaultPie = new THREE.Mesh(geometry, material);
+                defaultPie.rotation.x = Math.PI / 2;
+
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = 512; canvas.height = 512;
+                context.font = "bold 32px Poppins";
+                context.fillStyle = "white";
+                context.textAlign = "center";
+                context.textBaseline = "middle";
+                const defaultText = participants.length > 0 ? "Tirage Terminé !" : "Ajoutez des participants";
+                context.fillText(defaultText, canvas.width / 2, canvas.height / 2);
+                
+                const texture = new THREE.CanvasTexture(canvas);
+                const textMaterial = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+                const textPlane = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), textMaterial);
+                textPlane.position.z = 0.55;
+                
+                defaultPie.add(textPlane);
+                pieGroup.add(defaultPie);
+
             } else {
                 const sliceAngle = (2 * Math.PI) / activeParticipants.length;
                 activeParticipants.forEach((p, i) => {
@@ -92,7 +115,7 @@
                     const geometry = new THREE.ExtrudeGeometry(shape, { depth: 1, bevelEnabled: true, bevelThickness: 0.2, bevelSize: 0.1, bevelSegments: 2 });
                     const material = new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.5, metalness: 0.1 });
                     const sliceMesh = new THREE.Mesh(geometry, material);
-                    sliceMesh.userData = { nameRef: p.name }; // Associer la part au nom
+                    sliceMesh.userData = { nameRef: p.name };
                     pieGroup.add(sliceMesh);
                     
                     const textGeometry = new THREE.TextGeometry(p.name.length > 10 ? p.name.substring(0, 9) + '.' : p.name, { font: font, size: 0.35, height: 0.1 });
@@ -138,7 +161,9 @@
             const winner = available[Math.floor(Math.random() * available.length)];
             const winnerIndexInActive = available.indexOf(winner);
             const sliceAngle = (2 * Math.PI) / available.length;
-            const targetRotation = -((winnerIndexInActive * sliceAngle) + (sliceAngle / 2));
+            
+            const middleAngle = (winnerIndexInActive * sliceAngle) + (sliceAngle / 2);
+            const targetRotation = Math.PI - middleAngle;
             
             gsap.to(pieGroup.rotation, {
                 duration: 5,
@@ -154,7 +179,9 @@
                         gsap.to(lastWinnerMesh.scale, { x: 1.5, y: 1.5, z: 1.5, duration: 0.5, ease: "power2.out" });
                         lastWinnerMesh.material.color.set(0xffff00);
                     }
-                    updateAll();
+                    setTimeout(() => {
+                        updateAll();
+                    }, 1200);
                 }
             });
         }

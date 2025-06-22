@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tirage au Sort</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFD700'%3E%3Cpath d='M19 4h-3V2h-8v2H5c-1.1 0-2 .9-2 2v3c0 1.1.9 2 2 2h1v6c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2v-6h1c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-9 0h2v2h-2V4zM7 9H5V6h2v3zm12 0h-2V6h2v3z'/%3E%3C/svg%3E">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -15,7 +16,8 @@
     <link rel="stylesheet" href="./tirage.css">
 </head>
 <body class="w-screen h-screen flex flex-row bg-gray-900 text-gray-200">
- <!-- Colonne des contrôles (gauche) -->
+  
+    <!-- Colonne des contrôles (gauche) -->
     <div class="w-1/4 h-full bg-gray-800 p-6 flex flex-col shadow-2xl z-20 flex-shrink-0">
         <h2 class="text-2xl font-bold text-white mb-4">Panneau de Contrôle</h2>
         <div class="flex items-center space-x-2 mb-4">
@@ -37,7 +39,7 @@
         <div id="confetti-container" class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-30"></div>
         <div class="absolute top-1/2 left-4 transform -translate-y-1/2 z-10" style="filter: drop-shadow(0 0 10px #fff);">
              <svg width="60" height="60" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 12L18 4V20L3 12Z" stroke="#1a202c" stroke-width="1.5" stroke-linejoin="round"/>
+                <path d="M21 12L6 4V20L21 12Z" stroke="#1a202c" stroke-width="1.5" stroke-linejoin="round"/>
             </svg>
         </div>
         <button style="pointer-events: auto;" id="draw-btn" class="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-red-600 hover:bg-red-500 text-white font-bold py-4 px-8 rounded-full text-2xl transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-red-400 disabled:opacity-50 disabled:cursor-not-allowed">
@@ -52,6 +54,7 @@
              <li class="text-gray-400 text-center italic mt-4">En attente du tirage...</li>
         </ul>
     </div>
+
 
 
     <script src="./tirage.style.js"></script>
