@@ -1,10 +1,9 @@
- // --- INITIALISATION ---
+        // --- INITIALISATION ---
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
         camera.position.z = 10;
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         const canvasContainer = $('#canvas-container');
-        // Ajustement pour le layout
         const mainView = $(canvasContainer).parent();
         renderer.setSize(mainView.width(), mainView.height());
         canvasContainer.append(renderer.domElement);
@@ -17,6 +16,7 @@
         let usedColors = participants.map(p => p.color);
         let isSpinning = false;
         let drawCount = participants.filter(p => p.drawn).length;
+        let font = null;
 
         // --- GESTION DES PARTICIPANTS ---
         function addParticipant() {
@@ -25,13 +25,7 @@
                 $('#name-input').val('');
                 return;
             }
-
-            participants.push({
-                name: name,
-                color: generateUniqueColor(),
-                drawn: false,
-                rank: null
-            });
+            participants.push({ name: name, color: generateUniqueColor(), drawn: false, rank: null });
             $('#name-input').val('');
             updateAll();
         }
@@ -39,7 +33,7 @@
         function deleteParticipant(index) {
             if(isSpinning) return;
             participants.splice(index, 1);
-            usedColors = participants.map(p => p.color); // Refresh used colors
+            usedColors = participants.map(p => p.color);
             updateAll();
         }
 
@@ -73,6 +67,8 @@
 
         // --- LOGIQUE 3D (THREE.JS) ---
         function createPieChart() {
+            if (!font && participants.length > 0) return; // Attendre que la police soit chargée si nécessaire
+
             while (pieGroup.children.length) {
                 pieGroup.remove(pieGroup.children[0]);
             }
@@ -85,8 +81,7 @@
 
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
-                canvas.width = 512;
-                canvas.height = 512;
+                canvas.width = 512; canvas.height = 512;
                 context.font = "bold 32px Poppins";
                 context.fillStyle = "white";
                 context.textAlign = "center";
@@ -114,9 +109,39 @@
                     const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
                     const material = new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.5, metalness: 0.1 });
                     const mesh = new THREE.Mesh(geometry, material);
-                    
                     mesh.userData = { id: i, name: p.name };
                     pieGroup.add(mesh);
+
+                    // --- Créer le texte 3D pour le nom ---
+                    const displayName = p.name.length > 10 ? p.name.substring(0, 9) + '.' : p.name;
+                    const textGeometry = new THREE.TextGeometry(displayName, {
+                        font: font,
+                        size: 0.35,
+                        height: 0.1,
+                        curveSegments: 4,
+                        bevelEnabled: false,
+                    });
+                    textGeometry.center(); // Centrer la géométrie pour une rotation correcte
+                    
+                    const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                    const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+                    
+                    const middleAngle = i * sliceAngle + sliceAngle / 2;
+                    const radius = 3.5;
+                    
+                    textMesh.position.set(
+                        Math.cos(middleAngle) * radius,
+                        Math.sin(middleAngle) * radius,
+                        1.2 // Hauteur au-dessus du camembert
+                    );
+                    
+                    textMesh.rotation.z = middleAngle;
+
+                    if (middleAngle > Math.PI / 2 && middleAngle < 3 * Math.PI / 2) {
+                        textMesh.rotation.z += Math.PI; // Retourner le texte pour qu'il ne soit pas à l'envers
+                    }
+
+                    pieGroup.add(textMesh);
                 });
             }
         }
@@ -130,11 +155,7 @@
         function startDraw() {
             if (isSpinning) return;
             const available = participants.filter(p => !p.drawn);
-            if (available.length < 1) {
-                 // Remplacer alert() par un modal personnalisé à l'avenir
-                 console.log("Tous les participants ont été tirés !");
-                 return;
-            }
+            if (available.length < 1) { return; }
 
             isSpinning = true;
             $('#draw-btn').prop('disabled', true).text('Tirage...');
@@ -190,17 +211,15 @@
 
         // --- Écouteurs d'événements (JQuery) ---
         $('#add-btn').on('click', addParticipant);
-        //$('#name-input').on('keypress', (e) => e.which === 13 && addParticipant());
-        $('#participants-list').on('click', '.delete-btn', function() {
-            deleteParticipant($(this).data('index'));
-        });
+        // $('#name-input').on('keypress', (e) => e.which === 13 && addParticipant());
+        $('#participants-list').on('click', '.delete-btn', function() { deleteParticipant($(this).data('index')); });
         $('#draw-btn').on('click', startDraw);
         $(window).on('resize', onWindowResize);
         
         $('#participants-list').on('blur', '.participant-name', function() {
             const index = $(this).data('index');
             const newName = $(this).text().trim();
-            if(!participants[index]) return; // Sécurité si l'élément est déjà supprimé
+            if(!participants[index]) return;
             const oldName = participants[index].name;
 
             if (newName && oldName !== newName) {
@@ -208,15 +227,15 @@
                 if (!isDuplicate) {
                     participants[index].name = newName;
                     updateAll();
-                } else {
-                    $(this).text(oldName);
-                }
-            } else if (!newName) {
-                $(this).text(oldName);
-            }
+                } else { $(this).text(oldName); }
+            } else if (!newName) { $(this).text(oldName); }
         });
 
-        // --- DÉMARRAGE ---
-        onWindowResize();
-        updateAll();
-        animate();
+        // --- CHARGEMENT DE LA POLICE ET DÉMARRAGE ---
+        const fontLoader = new THREE.FontLoader();
+        fontLoader.load('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helvetiker_regular.typeface.json', (loadedFont) => {
+            font = loadedFont;
+            onWindowResize();
+            updateAll();
+            animate();
+        });

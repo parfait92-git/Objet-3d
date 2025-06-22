@@ -4,7 +4,6 @@ body {
             color: #e2e8f0;
             overflow: hidden;
         }
-        /* Correction: Le conteneur du canevas ignore les événements de la souris */
         #canvas-container {
             pointer-events: none; 
         }
@@ -31,7 +30,6 @@ body {
             color: #ef4444;
             transform: scale(1.2);
         }
-        /* Style pour la barre de défilement */
         #participants-list::-webkit-scrollbar {
             width: 8px;
         }
