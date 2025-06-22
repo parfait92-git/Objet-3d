@@ -4,43 +4,23 @@ body {
             color: #e2e8f0;
             overflow: hidden;
         }
-        #canvas-container {
-            pointer-events: none; 
-        }
-        .participant-item {
-            transition: all 0.3s ease;
-        }
-        .participant-item.drawn {
-            text-decoration: line-through;
-            opacity: 0.6;
-        }
+        .participant-item { transition: all 0.3s ease; }
+        .participant-item.drawn { text-decoration: line-through; opacity: 0.6; }
         .participant-name {
-            outline: none;
-            border-radius: 4px;
-            padding: 2px 4px;
-            transition: background-color 0.2s;
+            outline: none; border-radius: 4px; padding: 2px 4px; transition: background-color 0.2s;
         }
-        .participant-name[contenteditable="true"]:focus {
-            background-color: #4a5568;
+        .participant-name[contenteditable="true"]:focus { background-color: #4a5568; }
+        .delete-btn { transition: all 0.2s ease; }
+        .delete-btn:hover { color: #ef4444; transform: scale(1.2); }
+        .scroll-list::-webkit-scrollbar { width: 8px; }
+        .scroll-list::-webkit-scrollbar-track { background: #2d3748; border-radius: 10px; }
+        .scroll-list::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 10px; }
+        .scroll-list::-webkit-scrollbar-thumb:hover { background: #718096; }
+        
+        #alert-message {
+            transition: opacity 0.5s ease-in-out; opacity: 0; pointer-events: none;
         }
-        .delete-btn {
-            transition: all 0.2s ease;
-        }
-        .delete-btn:hover {
-            color: #ef4444;
-            transform: scale(1.2);
-        }
-        #participants-list::-webkit-scrollbar {
-            width: 8px;
-        }
-        #participants-list::-webkit-scrollbar-track {
-            background: #2d3748;
-            border-radius: 10px;
-        }
-        #participants-list::-webkit-scrollbar-thumb {
-            background: #4a5568;
-            border-radius: 10px;
-        }
-        #participants-list::-webkit-scrollbar-thumb:hover {
-            background: #718096;
+        #alert-message.show { opacity: 1; }
+        .confetti {
+            position: absolute; width: 10px; height: 10px; opacity: 0; pointer-events: none;
         }

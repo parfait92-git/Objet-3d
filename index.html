@@ -5,10 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rotation d'Objet 3D au Défilement et Souris</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
+<!-- Bouton de navigation ajouté -->
+    <div class="absolute top-5 right-5 z-30">
+        <a href="./tirage/tirage.html" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+            Aller au tirage
+        </a>
+    </div>
     <div id="canvas-container">
         <canvas id="main-canvas"></canvas>
     </div>
