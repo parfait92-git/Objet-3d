@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tirage au Sort</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tirage 2.0</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFD700'%3E%3Cpath d='M19 4h-3V2h-8v2H5c-1.1 0-2 .9-2 2v3c0 1.1.9 2 2 2h1v6c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2v-6h1c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-9 0h2v2h-2V4zM7 9H5V6h2v3zm12 0h-2V6h2v3z'/%3E%3C/svg%3E">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -12,11 +13,13 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./tirage.css">
 </head>
 <body class="w-screen h-screen flex flex-row bg-gray-900 text-gray-200">
-  
+
     <!-- Colonne des contrôles (gauche) -->
     <div class="w-1/4 h-full bg-gray-800 p-6 flex flex-col shadow-2xl z-20 flex-shrink-0">
         <h2 class="text-2xl font-bold text-white mb-4">Panneau de Contrôle</h2>
@@ -25,10 +28,12 @@
             <button id="add-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">Ajouter</button>
         </div>
         <div id="alert-message" class="bg-red-500 text-white text-center p-2 rounded-lg mb-4"></div>
-
         <div class="flex items-center justify-between border-b-2 border-gray-700 pb-2 mb-2">
             <h3 class="text-xl font-semibold text-white">À Tirer</h3>
-            <button id="reset-btn" title="Réinitialiser la liste" class="text-sm bg-gray-600 hover:bg-gray-500 text-white font-bold py-1 px-3 rounded-lg transition-all transform hover:scale-105">Réinitialiser</button>
+            <div class="flex items-center space-x-2">
+                <button id="sound-toggle-btn" title="Activer/Désactiver le son" class="p-2 rounded-lg bg-gray-600 hover:bg-gray-500 transition-all transform hover:scale-105"></button>
+                <button id="reset-btn" title="Réinitialiser la liste" class="text-sm bg-gray-600 hover:bg-gray-500 text-white font-bold py-1 px-3 rounded-lg transition-all transform hover:scale-105">Réinitialiser</button>
+            </div>
         </div>
         <ul id="participants-list" class="flex-grow overflow-y-auto pr-2 scroll-list"></ul>
     </div>
@@ -37,26 +42,56 @@
     <div id="main-view" class="flex-grow h-full relative">
         <div id="canvas-container" class="w-full h-full pointer-events-none"></div>
         <div id="confetti-container" class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-30"></div>
-        <div class="absolute top-1/2 left-4 transform -translate-y-1/2 z-10" style="filter: drop-shadow(0 0 10px #fff);">
-             <svg width="60" height="60" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 12L6 4V20L21 12Z" stroke="#1a202c" stroke-width="1.5" stroke-linejoin="round"/>
-            </svg>
-        </div>
-        <button style="pointer-events: auto;" id="draw-btn" class="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-red-600 hover:bg-red-500 text-white font-bold py-4 px-8 rounded-full text-2xl transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-red-400 disabled:opacity-50 disabled:cursor-not-allowed">
-            TIRER !
-        </button>
+        <div class="absolute top-1/2 left-4 transform -translate-y-1/2 z-10" style="filter: drop-shadow(0 0 10px #fff);"><svg width="60" height="60" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M21 12L6 4V20L21 12Z" stroke="#1a202c" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
+        <button style="pointer-events: auto;" id="draw-btn" class="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-red-600 hover:bg-red-500 text-white font-bold py-4 px-8 rounded-full text-2xl transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-red-400 disabled:opacity-50 disabled:cursor-not-allowed">TIRER !</button>
     </div>
 
     <!-- Colonne des Gagnants (droite) -->
-    <div class="w-1/4 h-full bg-gray-800 p-6 flex flex-col shadow-inner z-10 flex-shrink-0 border-l-2 border-gray-700">
+    <div class="w-1/4 h-full bg-gray-800 p-6 flex flex-col shadow-inner z-10 flex-shrink-0 border-l-2 border-gray-700 relative">
         <h2 class="text-2xl font-bold text-white mb-4 border-b-2 border-gray-700 pb-2">Résultats du Tirage</h2>
-        <ul id="winners-list" class="flex-grow overflow-y-auto pr-2 scroll-list">
-             <li class="text-gray-400 text-center italic mt-4">En attente du tirage...</li>
-        </ul>
+        <ul id="winners-list" class="flex-grow overflow-y-auto pr-2 scroll-list"></ul>
+        <div id="fab-container" class="absolute bottom-6 right-6 flex flex-col space-y-3">
+             <button id="copy-btn" title="Copier la liste" class="w-14 h-14 bg-blue-600 hover:bg-blue-500 text-white rounded-full flex items-center justify-center shadow-lg transition-all transform hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+             <button id="pdf-btn" title="Télécharger en PDF" class="w-14 h-14 bg-green-600 hover:bg-green-500 text-white rounded-full flex items-center justify-center shadow-lg transition-all transform hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></button>
+        </div>
     </div>
 
-
-
+    <!-- Modal d'édition -->
+    <div id="edit-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 text-white rounded-lg shadow-2xl p-8 w-full max-w-lg">
+            <h3 class="text-2xl font-bold mb-6">Éditer le Participant</h3>
+            <form id="edit-form">
+                <input type="hidden" id="edit-participant-index">
+                <div class="mb-4">
+                    <label for="edit-name" class="block mb-2 text-sm font-medium">Nom <span class="text-red-500">*</span></label>
+                    <input type="text" id="edit-name" class="bg-gray-700 border border-gray-600 rounded-lg w-full p-2.5 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div class="mb-4">
+                    <label for="edit-tontine-date" class="block mb-2 text-sm font-medium">Date de tontine <span class="text-red-500">*</span></label>
+                    <input type="date" id="edit-tontine-date" class="bg-gray-700 border border-gray-600 rounded-lg w-full p-2.5 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div class="mb-4">
+                    <label for="edit-payment-method" class="block mb-2 text-sm font-medium">Mode de virement <span class="text-red-500">*</span></label>
+                    <select id="edit-payment-method" class="bg-gray-700 border border-gray-600 rounded-lg w-full p-2.5 focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="Telephone">Téléphone</option>
+                        <option value="Courriel">Courriel</option>
+                    </select>
+                </div>
+                <div id="email-field-container" class="mb-4 hidden">
+                    <label for="edit-email" class="block mb-2 text-sm font-medium">Courriel</label>
+                    <input type="email" id="edit-email" placeholder="exemple@domaine.com" class="bg-gray-700 border border-gray-600 rounded-lg w-full p-2.5 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div id="phone-field-container" class="mb-4">
+                    <label for="edit-phone" class="block mb-2 text-sm font-medium">Téléphone</label>
+                    <input type="tel" id="edit-phone" placeholder="(xxx)-xxx-xxxx" class="bg-gray-700 border border-gray-600 rounded-lg w-full p-2.5 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div class="flex justify-end space-x-4 mt-8">
+                    <button type="button" id="cancel-edit-btn" class="py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg">Annuler</button>
+                    <button type="submit" class="py-2 px-4 bg-green-600 hover:bg-green-500 rounded-lg">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <script src="./tirage.style.js"></script>
 </body>
 </html>
