@@ -1,18 +1,22 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rotation d'Objet 3D au Défilement et Souris</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFD700'%3E%3Cpath d='M19 4h-3V2h-8v2H5c-1.1 0-2 .9-2 2v3c0 1.1.9 2 2 2h1v6c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2v-6h1c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-9 0h2v2h-2V4zM7 9H5V6h2v3zm12 0h-2V6h2v3z'/%3E%3C/svg%3E">
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23FFD700'%3E%3Cpath d='M19 4h-3V2h-8v2H5c-1.1 0-2 .9-2 2v3c0 1.1.9 2 2 2h1v6c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2v-6h1c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-9 0h2v2h-2V4zM7 9H5V6h2v3zm12 0h-2V6h2v3z'/%3E%3C/svg%3E">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-<!-- Bouton de navigation ajouté -->
+    <!-- Bouton de navigation ajouté -->
     <div class="absolute top-5 right-5 z-30">
-        <a href="./tirage/tirage.html" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
+        <a href="./tirage/tirage.html"
+            class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
             Aller au tirage
         </a>
     </div>
@@ -22,10 +26,12 @@
 
     <div class="content">
         <h1 class="title">Objet 3D Interactif</h1>
-        <p class="subtitle">Déplacez la souris pour pivoter • Faites défiler pour tourner • Cliquez sur l'objet pour zoomer</p>
+        <p class="subtitle">Déplacez la souris pour pivoter • Faites défiler pour tourner • Cliquez sur l'objet pour
+            zoomer</p>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="script.js"></script>
 </body>
+
 </html>
