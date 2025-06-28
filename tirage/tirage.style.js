@@ -197,7 +197,7 @@ function openEditModal(index) {
 }
 
 function closeEditModal() {
-     $('#edit-modal').addClass('hidden'); 
+    $('#edit-modal').addClass('hidden');
 }
 
 function openSettingsModal() {
@@ -395,19 +395,42 @@ function copyResults() {
     const textarea = document.createElement('textarea');
     textarea.value = textToCopy;
     document.body.appendChild(textarea);
-    textarea.select(); 
+    textarea.select();
     document.execCommand('copy', true, textToCopy);
     document.body.removeChild(textarea);
-    const copyBtn = $('#copy-btn'); 
+    const copyBtn = $('#copy-btn');
     const originalIcon = copyBtn.html();
     copyBtn.html('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>');
     setTimeout(() => { copyBtn.html(originalIcon); }, 2000);
 }
 
 // --- BOUCLE PRINCIPALE ET ÉVÉNEMENTS ---
-function animate() { requestAnimationFrame(animate); if (!isSpinning) { pieGroup.rotation.z += 0.002; } renderer.render(scene, camera); }
-function onWindowResize() { const newWidth = mainView.width(); const newHeight = mainView.height(); camera.aspect = newWidth / newHeight; camera.updateProjectionMatrix(); renderer.setSize(newWidth, newHeight); }
-function generateUniqueColor() { let color; do { color = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0'); } while (usedColors.includes(color)); usedColors.push(color); return color; }
+function animate() {
+    requestAnimationFrame(animate);
+    if (!isSpinning) {
+        pieGroup.rotation.z += 0.002;
+
+    }
+
+    renderer.render(scene, camera);
+}
+
+function onWindowResize() {
+    const newWidth = mainView.width();
+    const newHeight = mainView.height();
+    camera.aspect = newWidth / newHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(newWidth, newHeight);
+}
+
+function generateUniqueColor() {
+    let color;
+    do {
+        color = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+    } while (usedColors.includes(color));
+
+    usedColors.push(color); return color;
+}
 
 $('#add-btn').on('click', addParticipant);
 $('#reset-btn').on('click', resetAll);
@@ -418,24 +441,31 @@ $('#sound-toggle-btn').on('click', () => {
     localStorage.setItem('soundEnabled', JSON.stringify(isSoundEnabled));
     updateButtonStates();
 });
+
 $('#participants-list').on('click', '.delete-btn', function (e) {
     e.stopPropagation();
     const element = $(this).closest('li');
     const index = $(this).data('index');
     deleteParticipant(element, index);
 });
+
 $('#draw-btn').on('click', startDraw);
 $('#pdf-btn').on('click', generatePDF);
 $('#copy-btn').on('click', copyResults);
 $(window).on('resize', onWindowResize);
 
-$('#winners-list').on('click', 'li', function () { openEditModal($(this).data('index')); });
+$('#winners-list').on('click', 'li', function () { 
+    openEditModal($(this).data('index')); 
+});
+
 $('#cancel-edit-btn').on('click', closeEditModal);
+
 $('#edit-payment-method').on('change', function () {
     const isEmail = $(this).val() === 'Courriel';
     $('#email-field-container').toggleClass('hidden', !isEmail);
     $('#phone-field-container').toggleClass('hidden', isEmail);
 });
+
 $('#edit-form').on('submit', function (e) {
     e.preventDefault();
     $('.input-error').removeClass('input-error');
@@ -461,6 +491,7 @@ $('#edit-form').on('submit', function (e) {
         closeEditModal();
     }
 });
+
 $('#settings-form').on('submit', function (e) {
     e.preventDefault();
     $('.input-error').removeClass('input-error');
@@ -469,6 +500,12 @@ $('#settings-form').on('submit', function (e) {
     if (count < 2 || count > 24) {
         $('#settings-participant-count').addClass('input-error');
         showAlert("Le nombre de participants doit être entre 2 et 24.");
+        isValid = false;
+    }
+    if (count <= participants.length)
+    {
+        $('#settings-participant-count').addClass('input-error');
+        showAlert("Le nombre de participants ne peut pas être inférieur ou égale au nombre dejà présent dans ta liste!");
         isValid = false;
     }
     if (isValid) {
@@ -480,14 +517,17 @@ $('#settings-form').on('submit', function (e) {
         closeSettingsModal();
     }
 });
+
 $('#settings-amount, #settings-participant-count').on('input', function () {
     let value = $(this).val().replace(/[^0-9]/g, '');
     $(this).val(value);
 });
+
 $('#edit-phone').on('input', function () {
     let value = $(this).val();
     $(this).val(formatPhoneNumber(value));
 });
+
 $('#participants-list').on('blur', '.participant-name', function (e) {
     const index = $(this).data('index'); const newName = $(this).text().trim(); if (!participants[index]) return; const oldName = participants[index].name;
     if (newName && oldName !== newName) {
