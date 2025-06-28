@@ -404,6 +404,96 @@ function copyResults() {
     setTimeout(() => { copyBtn.html(originalIcon); }, 2000);
 }
 
+// --- TUTORIAL LOGIC ---
+let currentStep = 0;
+const tutorialSteps = [
+    { element: '#settings-btn', text: "Bienvenue ! Cliquez ici pour définir les paramètres de votre tontine (montant, fréquence, etc.)." },
+    { element: '#settings-form', text: "Remplissez tous les champs, puis cliquez sur 'Enregistrer'.", action: 'submit' },
+    { element: '#name-input', text: "Excellent ! Maintenant, saisissez le nom de votre premier participant ici." },
+    { element: '#add-btn', text: "Cliquez sur 'Ajouter' pour l'inclure dans la liste de tirage.", action: 'click' },
+    { element: '#draw-btn', text: "Une fois que tous les participants sont ajoutés, cliquez ici pour lancer le tirage !" },
+    { element: '#winners-list', text: "Félicitations au gagnant ! Vous pouvez cliquer sur son nom pour modifier ses informations.", action: 'click', optional: true },
+    { element: '#fab-container', text: "Enfin, utilisez ces boutons pour copier la liste des résultats ou la télécharger en PDF." },
+];
+
+function positionPopup(element) {
+    const popup = $('#tutorial-popup');
+    if (!element || !element.length) {
+        popup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' });
+        return;
+    };
+
+    const targetRect = element[0].getBoundingClientRect();
+    popup.css({
+        top: `${targetRect.bottom + 15}px`,
+        left: `${targetRect.left + targetRect.width / 2 - popup.outerWidth() / 2}px`,
+    });
+
+    if (popup[0].getBoundingClientRect().right > window.innerWidth) {
+        popup.css('left', `${window.innerWidth - popup.outerWidth() - 15}px`);
+    }
+    if (popup[0].getBoundingClientRect().left < 0) {
+        popup.css('left', '15px');
+    }
+    if (targetRect.bottom + popup.outerHeight() + 15 > window.innerHeight) {
+        popup.css({ top: `${targetRect.top - popup.outerHeight() - 15}px` });
+    }
+}
+
+function showTutorialStep(stepIndex) {
+    $('.tutorial-highlight').removeClass('tutorial-highlight');
+    if (stepIndex >= tutorialSteps.length) {
+        endTutorial();
+        return;
+    }
+
+    const step = tutorialSteps[stepIndex];
+    const targetElement = $(step.element);
+
+    if (!targetElement.is(':visible')) {
+        if (step.optional) {
+            currentStep++;
+            showTutorialStep(currentStep);
+            return;
+        }
+        endTutorial();
+        return;
+    }
+
+    $('#tutorial-overlay').removeClass('hidden');
+    targetElement.addClass('tutorial-highlight');
+    $('#tutorial-text').text(step.text);
+    positionPopup(targetElement);
+
+    $('#tutorial-next-btn').off('click').one('click', () => {
+        if (!step.action) {
+            currentStep++;
+            showTutorialStep(currentStep);
+        }
+    });
+
+    if (step.action) {
+        const eventName = step.action + ".tutorial";
+        $(document).off(eventName).one(eventName, step.element, () => {
+            currentStep++;
+            setTimeout(() => showTutorialStep(currentStep), 300);
+        });
+    }
+}
+
+function startTutorial() {
+    currentStep = 0;
+    showTutorialStep(currentStep);
+}
+
+function endTutorial() {
+    $('.tutorial-highlight').removeClass('tutorial-highlight');
+    $('#tutorial-overlay').addClass('hidden');
+    localStorage.setItem('tutorialCompleted', 'true');
+}
+
+$('#tutorial-skip-btn').on('click', endTutorial);
+
 // --- BOUCLE PRINCIPALE ET ÉVÉNEMENTS ---
 function animate() {
     requestAnimationFrame(animate);
@@ -543,4 +633,7 @@ fontLoader.load('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helve
     onWindowResize();
     updateAll();
     animate();
+    if (!localStorage.getItem('tutorialCompleted')) {
+        setTimeout(startTutorial, 1000); // Lancer le tutoriel après un court instant
+    }
 });
