@@ -1,9 +1,16 @@
 const CACHE_NAME = 'tirage-au-sort-v1';
 
 const localUrlsToCache = [
-  '../',
-  '../tirage.css',
-  '../tirage.style.js'
+  '/',
+  '/index.html',
+  '/style.css', 
+  '/script.js',
+  '/vercel.js', 
+  '/tirage/tirage.css',
+  '/tirage/tirage.style.js',
+  '/tirage/img/icon-192x192.png', 
+  '/tirage/img/icon-512x512.png',
+  '/tirage/pwa/manifest.json' 
 ];
 
 self.addEventListener('install', (event) => {
