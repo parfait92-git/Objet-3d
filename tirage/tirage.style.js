@@ -185,6 +185,7 @@ function openEditModal(index) {
     $('#edit-participant-index').val(index);
     $('#edit-name').val(p.name);
     $('#edit-tontine-date').val(p.tontineDate || '');
+    $('#edit-tontine-date').attr('min', new Date().toISOString().split("T")[0]);
     const payout = (tontineSettings.participantCount - 1) * tontineSettings.amount;
     $('#edit-payout').val(formatCurrency(payout));
     $('#edit-payment-method').val(p.paymentMethod || 'Telephone').trigger('change');
@@ -205,6 +206,7 @@ function openSettingsModal() {
     $('#settings-amount').val(tontineSettings.amount > 0 ? tontineSettings.amount : '');
     $('#settings-frequency').val(tontineSettings.frequency);
     $('#settings-start-date').val(tontineSettings.startDate);
+    $('#settings-start-date').attr('min', new Date().toISOString().split("T")[0]);
     $('#settings-modal').removeClass('hidden');
 }
 
@@ -407,85 +409,60 @@ function copyResults() {
 // --- TUTORIAL LOGIC ---
 let currentStep = 0;
 const tutorialSteps = [
-    { element: '#settings-btn', text: "Bienvenue ! Cliquez ici pour définir les paramètres de votre tontine (montant, fréquence, etc.)." },
-    { element: '#settings-form', text: "Remplissez tous les champs, puis cliquez sur 'Enregistrer'.", action: 'submit' },
-    { element: '#name-input', text: "Excellent ! Maintenant, saisissez le nom de votre premier participant ici." },
-    { element: '#add-btn', text: "Cliquez sur 'Ajouter' pour l'inclure dans la liste de tirage.", action: 'click' },
-    { element: '#draw-btn', text: "Une fois que tous les participants sont ajoutés, cliquez ici pour lancer le tirage !" },
-    { element: '#winners-list', text: "Félicitations au gagnant ! Vous pouvez cliquer sur son nom pour modifier ses informations.", action: 'click', optional: true },
-    { element: '#fab-container', text: "Enfin, utilisez ces boutons pour copier la liste des résultats ou la télécharger en PDF." },
+    { element: '#settings-btn', text: "Bienvenue ! Cliquez ici pour définir les paramètres de votre tontine.", requireAction: true, action: 'click' },
+    { element: '#settings-form', text: "Remplissez tous les champs, puis cliquez sur 'Enregistrer'.", requireAction: true, action: 'submit' },
+    { element: '#name-input', text: "Excellent ! Maintenant, saisissez le nom du premier participant." },
+    { element: '#add-btn', text: "Cliquez sur 'Ajouter' pour l'inclure dans la liste.", requireAction: true, action: 'click' },
+    { element: '#draw-btn', text: "Une fois que tous les participants sont ajoutés, cliquez ici pour lancer le tirage !", requireAction: true, action: 'click', condition: () => participants.length > 0 },
+    { element: '#winners-list', text: "Félicitations au gagnant ! Cliquez sur son nom pour modifier ses informations.", requireAction: true, action: 'click', optional: true, condition: () => participants.some(p => p.drawn) },
+    { element: '#fab-container', text: "Enfin, utilisez ces boutons pour copier la liste ou la télécharger en PDF." },
+    { element: 'footer', text: "Le tutoriel est terminé. Profitez bien de l'application !" }
 ];
 
 function positionPopup(element) {
     const popup = $('#tutorial-popup');
-    if (!element || !element.length) {
-        popup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' });
-        return;
-    };
-
+    if (!element || !element.length) { popup.css({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }); return; }
     const targetRect = element[0].getBoundingClientRect();
-    popup.css({
-        top: `${targetRect.bottom + 15}px`,
-        left: `${targetRect.left + targetRect.width / 2 - popup.outerWidth() / 2}px`,
-    });
-
-    if (popup[0].getBoundingClientRect().right > window.innerWidth) {
-        popup.css('left', `${window.innerWidth - popup.outerWidth() - 15}px`);
-    }
-    if (popup[0].getBoundingClientRect().left < 0) {
-        popup.css('left', '15px');
-    }
-    if (targetRect.bottom + popup.outerHeight() + 15 > window.innerHeight) {
-        popup.css({ top: `${targetRect.top - popup.outerHeight() - 15}px` });
-    }
+    popup.css({ top: `${targetRect.bottom + 15}px`, left: `${targetRect.left + targetRect.width / 2 - popup.outerWidth() / 2}px`, });
+    if (popup[0].getBoundingClientRect().right > window.innerWidth) { popup.css('left', `${window.innerWidth - popup.outerWidth() - 15}px`); }
+    if (popup[0].getBoundingClientRect().left < 0) { popup.css('left', '15px'); }
+    if (targetRect.bottom + popup.outerHeight() + 15 > window.innerHeight) { popup.css({ top: `${targetRect.top - popup.outerHeight() - 15}px` }); }
 }
 
 function showTutorialStep(stepIndex) {
     $('.tutorial-highlight').removeClass('tutorial-highlight');
-    if (stepIndex >= tutorialSteps.length) {
-        endTutorial();
-        return;
-    }
+    if (stepIndex >= tutorialSteps.length) { endTutorial(); return; }
 
     const step = tutorialSteps[stepIndex];
-    const targetElement = $(step.element);
-
-    if (!targetElement.is(':visible')) {
-        if (step.optional) {
-            currentStep++;
-            showTutorialStep(currentStep);
-            return;
-        }
-        endTutorial();
-        return;
+    if (step.condition && !step.condition()) {
+        if (step.optional) { currentStep++; showTutorialStep(currentStep); return; }
+        endTutorial(); return;
     }
+
+    const targetElement = $(step.element);
+    if (!targetElement.is(':visible')) { endTutorial(); return; }
 
     $('#tutorial-overlay').removeClass('hidden');
     targetElement.addClass('tutorial-highlight');
     $('#tutorial-text').text(step.text);
     positionPopup(targetElement);
 
-    $('#tutorial-next-btn').off('click').one('click', () => {
-        if (!step.action) {
-            currentStep++;
-            showTutorialStep(currentStep);
-        }
-    });
+    const advance = () => {
+        $(document).off('.tutorial');
+        $('#tutorial-next-btn').off('.tutorial');
+        currentStep++;
+        setTimeout(() => showTutorialStep(currentStep), 300);
+    };
 
-    if (step.action) {
-        const eventName = step.action + ".tutorial";
-        $(document).off(eventName).one(eventName, step.element, () => {
-            currentStep++;
-            setTimeout(() => showTutorialStep(currentStep), 300);
-        });
+    if (step.requireAction) {
+        $('#tutorial-next-btn').hide();
+        $(document).one(step.action + ".tutorial", step.element, advance);
+    } else {
+        $('#tutorial-next-btn').show().one('click.tutorial', advance);
     }
 }
 
-function startTutorial() {
-    currentStep = 0;
-    showTutorialStep(currentStep);
-}
-
+function startTutorial() { currentStep = 0; showTutorialStep(currentStep); }
 function endTutorial() {
     $('.tutorial-highlight').removeClass('tutorial-highlight');
     $('#tutorial-overlay').addClass('hidden');
@@ -495,32 +472,9 @@ function endTutorial() {
 $('#tutorial-skip-btn').on('click', endTutorial);
 
 // --- BOUCLE PRINCIPALE ET ÉVÉNEMENTS ---
-function animate() {
-    requestAnimationFrame(animate);
-    if (!isSpinning) {
-        pieGroup.rotation.z += 0.002;
-
-    }
-
-    renderer.render(scene, camera);
-}
-
-function onWindowResize() {
-    const newWidth = mainView.width();
-    const newHeight = mainView.height();
-    camera.aspect = newWidth / newHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(newWidth, newHeight);
-}
-
-function generateUniqueColor() {
-    let color;
-    do {
-        color = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
-    } while (usedColors.includes(color));
-
-    usedColors.push(color); return color;
-}
+function animate() { requestAnimationFrame(animate); if (!isSpinning) { pieGroup.rotation.z += 0.002; } renderer.render(scene, camera); }
+function onWindowResize() { const newWidth = mainView.width(); const newHeight = mainView.height(); camera.aspect = newWidth / newHeight; camera.updateProjectionMatrix(); renderer.setSize(newWidth, newHeight); }
+function generateUniqueColor() { let color; do { color = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0'); } while (usedColors.includes(color)); usedColors.push(color); return color; }
 
 $('#add-btn').on('click', addParticipant);
 $('#reset-btn').on('click', resetAll);
@@ -544,18 +498,13 @@ $('#pdf-btn').on('click', generatePDF);
 $('#copy-btn').on('click', copyResults);
 $(window).on('resize', onWindowResize);
 
-$('#winners-list').on('click', 'li', function () { 
-    openEditModal($(this).data('index')); 
-});
-
+$('#winners-list').on('click', 'li', function () { openEditModal($(this).data('index')); });
 $('#cancel-edit-btn').on('click', closeEditModal);
-
 $('#edit-payment-method').on('change', function () {
     const isEmail = $(this).val() === 'Courriel';
     $('#email-field-container').toggleClass('hidden', !isEmail);
     $('#phone-field-container').toggleClass('hidden', isEmail);
 });
-
 $('#edit-form').on('submit', function (e) {
     e.preventDefault();
     $('.input-error').removeClass('input-error');
@@ -581,7 +530,6 @@ $('#edit-form').on('submit', function (e) {
         closeEditModal();
     }
 });
-
 $('#settings-form').on('submit', function (e) {
     e.preventDefault();
     $('.input-error').removeClass('input-error');
@@ -607,17 +555,14 @@ $('#settings-form').on('submit', function (e) {
         closeSettingsModal();
     }
 });
-
 $('#settings-amount, #settings-participant-count').on('input', function () {
     let value = $(this).val().replace(/[^0-9]/g, '');
     $(this).val(value);
 });
-
 $('#edit-phone').on('input', function () {
     let value = $(this).val();
     $(this).val(formatPhoneNumber(value));
 });
-
 $('#participants-list').on('blur', '.participant-name', function (e) {
     const index = $(this).data('index'); const newName = $(this).text().trim(); if (!participants[index]) return; const oldName = participants[index].name;
     if (newName && oldName !== newName) {
@@ -634,6 +579,6 @@ fontLoader.load('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helve
     updateAll();
     animate();
     if (!localStorage.getItem('tutorialCompleted')) {
-        setTimeout(startTutorial, 1000); // Lancer le tutoriel après un court instant
+        setTimeout(startTutorial, 1000);
     }
 });
