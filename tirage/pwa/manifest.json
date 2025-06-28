@@ -2,7 +2,7 @@
   "name": "Tirage 2.0",
   "short_name": "Tirage 2.0",
   "description": "Application de tirage au sort avec un camembert 3D pour gérer des tontines.",
-  "start_url": ".",
+  "start_url": "../",
   "display": "standalone",
   "background_color": "#1a202c",
   "theme_color": "#1a202c",
