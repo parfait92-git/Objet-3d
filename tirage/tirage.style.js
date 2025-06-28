@@ -357,10 +357,10 @@ function generatePDF() {
     const today = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
     const payout = (tontineSettings.participantCount - 1) * tontineSettings.amount;
     const body = drawn.map(p => ['', p.name, p.interracValue || '', formatCurrency(payout), p.tontineDate || today]);
-
+    const dollarSign = "$";
     doc.setFontSize(34);
     doc.setTextColor(34, 139, 34);
-    doc.text("$", 105, 20, { align: 'center' });
+    doc.text(dollarSign, 105, 20, { align: 'center' });
     doc.setTextColor(40);
     doc.setFontSize(22);
     doc.text("Résultats de la Tontine", 105, 35, { align: 'center' });
@@ -502,8 +502,8 @@ $('#settings-form').on('submit', function (e) {
         showAlert("Le nombre de participants doit être entre 2 et 24.");
         isValid = false;
     }
-    if (count <= participants.length)
-    {
+    if (count <= participants.length) 
+        {
         $('#settings-participant-count').addClass('input-error');
         showAlert("Le nombre de participants ne peut pas être inférieur ou égale au nombre dejà présent dans ta liste!");
         isValid = false;
