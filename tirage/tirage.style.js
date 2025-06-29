@@ -415,7 +415,7 @@ const tutorialSteps = [
     { element: '#add-btn', text: "Cliquez sur 'Ajouter' pour l'inclure dans la liste.", requireAction: true, action: 'click' },
     { element: '#draw-btn', text: "Une fois que tous les participants sont ajoutés, cliquez ici pour lancer le tirage !", requireAction: true, action: 'click', condition: () => participants.length > 0 },
     { element: '#winners-list', text: "Félicitations au gagnant ! Cliquez sur son nom pour modifier ses informations.", requireAction: true, action: 'click', optional: true, condition: () => participants.some(p => p.drawn) },
-    { element: '#fab-container', text: "Enfin, utilisez ces boutons pour copier la liste ou la télécharger en PDF." },
+    { element: '#fab-container', text: "Enfin, utilisez ces boutons pour copier la liste ou la télécharger en PDF.", requireAction: true, action: 'click' },
     { element: 'footer', text: "Le tutoriel est terminé. Profitez bien de l'application !" }
 ];
 

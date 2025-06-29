@@ -1,6 +1,6 @@
 {
-  "name": "Tirage 2.0",
-  "short_name": "Tirage 2.0",
+  "name": "Tirage V3.0",
+  "short_name": "Tirage V3.0",
   "description": "Application de tirage au sort avec un camembert 3D pour gérer des tontines.",
   "start_url": "/",
   "display": "standalone",

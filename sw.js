@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tirage-au-sort-v1';
+const CACHE_NAME = 'tirage-au-sort-v1.0';
 
 const localUrlsToCache = [
   '/',
